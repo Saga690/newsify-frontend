@@ -61,7 +61,7 @@ export default function Home() {
           <div className="w-full max-w-2xl space-y-4">
             {isFirstQuery && (
               <h1 className="text-4xl font-bold text-center mb-8 transition-colors duration-300">
-                Ask anything...
+                What do you want to know?
               </h1>
             )}
 
@@ -136,10 +136,10 @@ export default function Home() {
             {isFirstQuery && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                 {[
-                  "What are the latest developments in AI?",
-                  "Explain quantum computing",
-                  "How does photosynthesis work?",
-                  "What is the theory of relativity?"
+                  "What are the latest news for Uttar Pradesh?",
+                  "What is the capital of India?",
+                  "What is the capital of Uttar Pradesh?",
+                  "What is the most populated state in India?",
                 ].map((example, index) => (
                   <Button
                     key={index}
