@@ -254,7 +254,7 @@ export default function Home() {
                       <p className="mb-4">
                         Based on your query about "{response.query}", here's what I found:
                       </p>
-                      <p className="mb-4">
+                      <p className="mb-4 newsreader-font">
                         {response.response || 'Loading...'}
                       </p>
                       <div className="flex flex-col gap-3 mt-6">

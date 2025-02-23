@@ -1,9 +1,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { Newsreader } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({ subsets: ['latin'] });
+
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  display: 'swap',
+ });
 
 export const metadata: Metadata = {
   title: 'Newsify',
