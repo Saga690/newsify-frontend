@@ -1,11 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, Sparkles, History, Settings, Link, Globe, Book } from 'lucide-react';
+import { Search, Sparkles, History, Settings, Link, Globe, Book, Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useTheme } from 'next-themes';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import axios from 'axios';
 
 interface Response {
@@ -14,11 +21,39 @@ interface Response {
   response?: string;
 }
 
+interface Chat {
+  id: string;
+  title: string;
+  responses: Response[];
+  timestamp: Date;
+}
+
 export default function Home() {
   const [query, setQuery] = useState('');
   const [responses, setResponses] = useState<Response[]>([]);
   const [isFirstQuery, setIsFirstQuery] = useState(true);
+  const [chats, setChats] = useState<Chat[]>([
+    {
+      id: '1',
+      title: 'Previous Chat 1',
+      responses: [
+        { query: 'What is quantum computing?', timestamp: new Date('2024-03-20') },
+        { query: 'How does AI work?', timestamp: new Date('2024-03-20') }
+      ],
+      timestamp: new Date('2024-03-20')
+    },
+    {
+      id: '2',
+      title: 'Previous Chat 2',
+      responses: [
+        { query: 'Explain blockchain', timestamp: new Date('2024-03-19') }
+      ],
+      timestamp: new Date('2024-03-19')
+    }
+  ]);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const { theme, setTheme } = useTheme();
 
   const handleAsk = async () => {
     if (query.trim()) {
@@ -27,17 +62,16 @@ export default function Home() {
       setQuery('');
       setIsFirstQuery(false);
 
-      // Optimistically update UI with "Fetching response..."
+      //Fetching response ke sath UI update too
       setResponses((prev) => [
         ...prev,
-        { query: newQuery, timestamp: new Date(), response: 'Fetching response...' }
+        { query: newQuery, timestamp: new Date(), response: 'Fetching response...' }  
       ]);
 
       try {
         const res = await axios.get(`http://localhost:8000/users/${encodeURIComponent(newQuery)}`);
         console.log(res)
 
-        // Update UI with the response from backend
         setResponses((prev) =>
           prev.map((item) =>
             item.query === newQuery ? { ...item, response: res.data.email || 'No response' } : item
@@ -71,13 +105,120 @@ export default function Home() {
               <span className="ml-2 text-xl font-semibold transition-colors duration-300">Newsify</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
+              {/* History Sheet */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <History className="h-5 w-5 transition-colors duration-300" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[400px] sm:w-[540px]">
+                  <SheetHeader>
+                    <SheetTitle>Chat History</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-4">
+                    {chats.map((chat) => (
+                      <Card key={chat.id} className="p-4 cursor-pointer hover:bg-accent transition-colors duration-200">
+                        <h3 className="font-medium mb-2">{chat.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {chat.responses.length} messages • {chat.timestamp.toLocaleDateString()}
+                        </p>
+                        <div className="mt-2 text-sm text-muted-foreground truncate">
+                          {chat.responses[0].query}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </SheetContent>
+              </Sheet>
+              {/* <Button variant="ghost" size="icon">
                 <History className="h-5 w-5 transition-colors duration-300" />
-              </Button>
+              </Button> */}
               <ThemeToggle />
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5 transition-colors duration-300" />
-              </Button>
+
+              {/* Settings Dialog */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Settings className="h-5 w-5 transition-colors duration-300" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Settings</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-6">
+
+                    <h3 className="text-sm font-medium mb-4">Theme Preferences</h3>
+                    <RadioGroup defaultValue={theme} onValueChange={setTheme} className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="light" id="light" />
+                        <Label htmlFor="light" className="flex items-center">
+                          <Sun className="h-4 w-4 mr-2" />
+                          Light
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="dark" id="dark" />
+                        <Label htmlFor="dark" className="flex items-center">
+                          <Moon className="h-4 w-4 mr-2" />
+                          Dark
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="system" id="system" />
+                        <Label htmlFor="system" className="flex items-center">
+                          <Monitor className="h-4 w-4 mr-2" />
+                          System
+                        </Label>
+                      </div>
+                    </RadioGroup>
+
+                    <div className="mt-6">
+                      <h3 className="text-sm font-medium mb-4">Chat Preferences</h3>
+
+                      {/* Language Selection */}
+                      <div className="mb-4">
+                        <Label htmlFor="language" className="block text-sm font-medium">
+                          Language
+                        </Label>
+                        <Select defaultValue="english">
+                          <SelectTrigger className="w-full mt-2">
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="english">English</SelectItem>
+                            <SelectItem value="spanish">Español</SelectItem>
+                            <SelectItem value="french">Français</SelectItem>
+                            <SelectItem value="german">Deutsch</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Chat Display Mode */}
+                      <div className="mb-4">
+                        <Label className="block text-sm font-medium">Message Display</Label>
+                        <RadioGroup defaultValue="comfortable" className="space-y-2 mt-2">
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="compact" id="compact" />
+                            <Label htmlFor="compact">Compact</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="comfortable" id="comfortable" />
+                            <Label htmlFor="comfortable">Comfortable</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+
+                      {/* Auto-Delete History Toggle */}
+                      <div className="flex items-center space-x-2">
+                        <Switch id="auto-delete" />
+                        <Label htmlFor="auto-delete">Auto-delete chat history</Label>
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
