@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import axios from 'axios';
 
 interface Response {
   query: string;
   timestamp: Date;
+  response?: string;
 }
 
 export default function Home() {
@@ -18,11 +20,37 @@ export default function Home() {
   const [isFirstQuery, setIsFirstQuery] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const handleAsk = () => {
+  const handleAsk = async () => {
     if (query.trim()) {
-      setResponses(prev => [...prev, { query: query.trim(), timestamp: new Date() }]);
+      const newQuery = query.trim();
+      // setResponses(prev => [...prev, { query: query.trim(), timestamp: new Date() }]);
       setQuery('');
       setIsFirstQuery(false);
+
+      // Optimistically update UI with "Fetching response..."
+      setResponses((prev) => [
+        ...prev,
+        { query: newQuery, timestamp: new Date(), response: 'Fetching response...' }
+      ]);
+
+      try {
+        const res = await axios.get(`http://localhost:8000/users/${encodeURIComponent(newQuery)}`);
+        console.log(res)
+
+        // Update UI with the response from backend
+        setResponses((prev) =>
+          prev.map((item) =>
+            item.query === newQuery ? { ...item, response: res.data.email || 'No response' } : item
+          )
+        );
+      } catch (error) {
+        console.error('Error fetching response:', error);
+        setResponses((prev) =>
+          prev.map((item) =>
+            item.query === newQuery ? { ...item, response: 'Failed to fetch response' } : item
+          )
+        );
+      }
     }
   };
 
@@ -34,7 +62,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen transition-all duration-300">
-      {/* Navigation */}
+      {/* Navigation Bar*/}
       <nav className="border-b bg-background/50 backdrop-blur-sm transition-colors duration-300 sticky top-0 z-50">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -74,7 +102,7 @@ export default function Home() {
                     <Search className="h-4 w-4" />
                     <span>{response.query}</span>
                   </div>
-                  
+
                   {/* Response Card */}
                   <Card className="p-6 transition-colors duration-300 bg-background/80 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-4">
@@ -86,7 +114,7 @@ export default function Home() {
                         Based on your query about "{response.query}", here's what I found:
                       </p>
                       <p className="mb-4">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                        {response.response || 'Loading...'}
                       </p>
                       <div className="flex flex-col gap-3 mt-6">
                         <div className="flex items-start gap-2">
@@ -109,7 +137,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            
+
             {/* Search Input */}
             <div className="relative sticky bottom-4 bg-background/50 backdrop-blur-sm transition-colors duration-300">
               <Input
@@ -123,7 +151,7 @@ export default function Home() {
                 }}
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors duration-300" />
-              <Button 
+              <Button
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 transition-colors duration-300 p-5"
                 size="sm"
                 onClick={handleAsk}
