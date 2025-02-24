@@ -28,10 +28,17 @@ interface Chat {
   timestamp: Date;
 }
 
+// Define an interface for an article
+interface Article {
+  title: string;
+  url: string;
+}
+
 export default function Home() {
   const [query, setQuery] = useState('');
   const [responses, setResponses] = useState<Response[]>([]);
   const [isFirstQuery, setIsFirstQuery] = useState(true);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [chats, setChats] = useState<Chat[]>([
     {
       id: '1',
@@ -65,18 +72,34 @@ export default function Home() {
       //Fetching response ke sath UI update too
       setResponses((prev) => [
         ...prev,
-        { query: newQuery, timestamp: new Date(), response: 'Fetching response...' }  
+        { query: newQuery, timestamp: new Date(), response: 'Fetching response...' }
       ]);
 
       try {
-        const res = await axios.get(`http://localhost:8000/users/${encodeURIComponent(newQuery)}`);
+        const res = await axios.post("http://localhost:8000/generate-seo-content", {
+          query: newQuery,
+        }, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
         console.log(res)
 
         setResponses((prev) =>
           prev.map((item) =>
-            item.query === newQuery ? { ...item, response: res.data.email || 'No response' } : item
+            item.query === newQuery ? { ...item, response: res.data.seo_optimized_article || 'No response' } : item
           )
         );
+
+        const extractedArticles: Article[] = res.data.retrieved_articles?.map((article: any) => ({
+          title: article.title,
+          url: article.url
+        })) || [];
+
+        setArticles(extractedArticles);
+
+        console.log(`extractedArticles`, extractedArticles)
+
       } catch (error) {
         console.error('Error fetching response:', error);
         setResponses((prev) =>
@@ -86,6 +109,10 @@ export default function Home() {
         );
       }
     }
+  };
+
+  const truncateUrl = (url: string, maxLength: number = 40) => {
+    return url.length > maxLength ? url.slice(0, maxLength) + "..." : url;
   };
 
   useEffect(() => {
@@ -258,22 +285,26 @@ export default function Home() {
                       <p className="mb-4 newsreader-font">
                         {response.response || 'Loading...'}
                       </p>
-                      <div className="flex flex-col gap-3 mt-6">
-                        <div className="flex items-start gap-2">
+                      {articles.length > 0 ? (<div className="flex flex-col gap-3 mt-6">
+                        {articles.map((article, index) => <div className="flex items-start gap-2" key={index}>
                           <Link className="h-4 w-4 mt-1 text-blue-500 transition-colors duration-300" />
                           <div>
-                            <a href="#" className="text-blue-500 hover:underline transition-colors duration-300">Example Source 1</a>
-                            <p className="text-sm text-muted-foreground transition-colors duration-300">Brief excerpt from the source explaining its relevance...</p>
+                            <a href={article.url} className="text-blue-500 hover:underline transition-colors duration-300">{truncateUrl(article.url, 30)}</a>
+                            <p className="text-sm text-muted-foreground transition-colors duration-300">{article.title}</p>
                           </div>
                         </div>
-                        <div className="flex items-start gap-2">
+                        )}
+                        {/* <div className="flex items-start gap-2">
                           <Book className="h-4 w-4 mt-1 text-blue-500 transition-colors duration-300" />
                           <div>
                             <a href="#" className="text-blue-500 hover:underline transition-colors duration-300">Academic Reference</a>
                             <p className="text-sm text-muted-foreground transition-colors duration-300">Additional context from academic sources...</p>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
+                      ) : (
+                        <p>Finding relevant articles...</p>
+                      )}
                     </div>
                   </Card>
 
