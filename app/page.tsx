@@ -76,7 +76,7 @@ export default function Home() {
       ]);
 
       try {
-        const res = await axios.post("https://newsify-backend.onrender.com//generate-seo-content", {
+        const res = await axios.post("https://newsify-backend.onrender.com/generate-seo-content", {
           query: newQuery,
         }, {
           headers: {
