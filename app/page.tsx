@@ -224,6 +224,7 @@ export default function Home() {
         </div>
       </nav>
 
+
       {/* Main Content */}
       <main className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex flex-col items-center ${!isFirstQuery ? 'pt-8' : 'justify-center min-h-[calc(100vh-4rem)]'}`}>
@@ -235,7 +236,7 @@ export default function Home() {
             )}
 
             {/* Chat History */}
-            <div className="space-y-6">
+            <div className="space-y-6 mb-6">
               {responses.map((response, index) => (
                 <div key={index} className="space-y-4">
                   {/* Query */}
@@ -275,6 +276,8 @@ export default function Home() {
                       </div>
                     </div>
                   </Card>
+
+                  <Button className="w-full">Publish on Wordpress</Button>
                 </div>
               ))}
             </div>
