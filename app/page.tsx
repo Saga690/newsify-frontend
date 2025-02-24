@@ -19,6 +19,7 @@ interface Response {
   query: string;
   timestamp: Date;
   response?: string;
+  articles: Article[];
 }
 
 interface Chat {
@@ -44,8 +45,8 @@ export default function Home() {
       id: '1',
       title: 'Previous Chat 1',
       responses: [
-        { query: 'What is quantum computing?', timestamp: new Date('2024-03-20') },
-        { query: 'How does AI work?', timestamp: new Date('2024-03-20') }
+        { query: 'Who is Yogi Adityanath?', timestamp: new Date('2024-03-20'), articles: [] },
+        { query: 'When are the next UP elections?', timestamp: new Date('2024-03-20'), articles: [] }
       ],
       timestamp: new Date('2024-03-20')
     },
@@ -53,7 +54,7 @@ export default function Home() {
       id: '2',
       title: 'Previous Chat 2',
       responses: [
-        { query: 'Explain blockchain', timestamp: new Date('2024-03-19') }
+        { query: 'Lucknow temples', timestamp: new Date('2024-03-19'), articles: [] }
       ],
       timestamp: new Date('2024-03-19')
     }
@@ -72,7 +73,7 @@ export default function Home() {
       //Fetching response ke sath UI update too
       setResponses((prev) => [
         ...prev,
-        { query: newQuery, timestamp: new Date(), response: 'Fetching response...' }
+        { query: newQuery, timestamp: new Date(), response: 'Fetching response...', articles: [] }
       ]);
 
       try {
@@ -83,22 +84,30 @@ export default function Home() {
             "Content-Type": "application/json",
           },
         });
-        console.log(res)
+        // console.log(res)
 
-        setResponses((prev) =>
-          prev.map((item) =>
-            item.query === newQuery ? { ...item, response: res.data.seo_optimized_article || 'No response' } : item
-          )
-        );
+        // setResponses((prev) =>
+        //   prev.map((item) =>
+        //     item.query === newQuery ? { ...item, response: res.data.seo_optimized_article || 'No response' } : item
+        //   )
+        // );
 
         const extractedArticles: Article[] = res.data.retrieved_articles?.map((article: any) => ({
           title: article.title,
           url: article.url
         })) || [];
 
-        setArticles(extractedArticles);
+        setResponses((prev) =>
+          prev.map((item) =>
+            item.query === newQuery
+              ? { ...item, response: res.data.seo_optimized_article || 'No response', articles: extractedArticles }
+              : item
+          )
+        );
 
-        console.log(`extractedArticles`, extractedArticles)
+        // setArticles(extractedArticles);
+
+        // console.log(`extractedArticles`, extractedArticles)
 
       } catch (error) {
         console.error('Error fetching response:', error);
@@ -282,11 +291,11 @@ export default function Home() {
                       <p className="mb-4">
                         Based on your query about "{response.query}", here's what I found:
                       </p>
-                      <p className="mb-4 newsreader-font">
+                      <p className="mb-4 newsreader-font break-words overflow-hidden">
                         {response.response || 'Loading...'}
                       </p>
-                      {articles.length > 0 ? (<div className="flex flex-col gap-3 mt-6">
-                        {articles.map((article, index) => <div className="flex items-start gap-2" key={index}>
+                      {response.articles.length > 0 ? (<div className="flex flex-col gap-3 mt-6">
+                        {response.articles.map((article, index) => <div className="flex items-start gap-2" key={index}>
                           <Link className="h-4 w-4 mt-1 text-blue-500 transition-colors duration-300" />
                           <div>
                             <a href={article.url} className="text-blue-500 hover:underline transition-colors duration-300">{truncateUrl(article.url, 30)}</a>
@@ -294,13 +303,6 @@ export default function Home() {
                           </div>
                         </div>
                         )}
-                        {/* <div className="flex items-start gap-2">
-                          <Book className="h-4 w-4 mt-1 text-blue-500 transition-colors duration-300" />
-                          <div>
-                            <a href="#" className="text-blue-500 hover:underline transition-colors duration-300">Academic Reference</a>
-                            <p className="text-sm text-muted-foreground transition-colors duration-300">Additional context from academic sources...</p>
-                          </div>
-                        </div> */}
                       </div>
                       ) : (
                         <p>Finding relevant articles...</p>
@@ -308,7 +310,7 @@ export default function Home() {
                     </div>
                   </Card>
 
-                  <Button className="w-full">Publish on Wordpress</Button>
+                  <Button className="w-full" onClick={() => alert("In progress")}>Publish on Wordpress</Button>
                 </div>
               ))}
             </div>
