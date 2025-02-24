@@ -223,10 +223,8 @@ export default function Home() {
                             <SelectValue placeholder="Select language" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="english">English</SelectItem>
-                            <SelectItem value="spanish">Español</SelectItem>
-                            <SelectItem value="french">Français</SelectItem>
-                            <SelectItem value="german">Deutsch</SelectItem>
+                            <SelectItem value="english">English(US)</SelectItem>
+                            <SelectItem value="spanish">English(UK)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
